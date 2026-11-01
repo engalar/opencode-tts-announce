@@ -24,8 +24,8 @@ describe("phraseFor", () => {
     expect(phraseFor("permission.asked", PHRASES, true)).toBe("需要授权")
   })
 
-  test("session.idle → idle phrase", () => {
-    expect(phraseFor("session.idle", PHRASES)).toBe("任务完成")
+  test("session.idle is ignored (completion events are canonical; idle double-fires on subagents)", () => {
+    expect(phraseFor("session.idle", PHRASES)).toBeUndefined()
   })
 
   test("session.execution.failed → error phrase", () => {
@@ -41,7 +41,7 @@ describe("phraseFor", () => {
   })
 
   test("custom phrase overrides the default entry", () => {
-    expect(phraseFor("session.idle", { ...PHRASES, idle: "all done" })).toBe("all done")
+    expect(phraseFor("session.execution.succeeded", { ...PHRASES, idle: "all done" })).toBe("all done")
   })
 })
 

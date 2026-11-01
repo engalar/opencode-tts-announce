@@ -18,9 +18,10 @@ export type SpeakerDeps = {
 
 /** Maps an OpenCode event type to the phrase key that should be announced. */
 const EVENT_KEYS: Record<string, keyof Phrases> = {
-  // Observed on turn completion in OpenCode v2.2.x (session.idle kept for older builds).
+  // Canonical completion signal in OpenCode v2.2.x. session.idle is deliberately
+  // unmapped: subagent sessions emit BOTH execution.succeeded and session.idle,
+  // which announced twice.
   "session.execution.succeeded": "idle",
-  "session.idle": "idle",
   "session.execution.failed": "error",
   "permission.asked": "permission",
 }
