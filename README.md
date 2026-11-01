@@ -64,14 +64,16 @@ start_tts_server.bat
 
 - `baseUrl` — 声源地址，默认 `http://127.0.0.1:8000`
 - `model` — 请求体之 model，默认 `tts-1`
-- `voice` — 服务器所配之声，默认 `alloy`
+- `voice` — 服务器所配之声，默认 `alloy`（未配则回落至服务器默认声）
+- `streaming` — 流式播报（默认 `true`）：以 ffplay 自 stdin 边到边播，首声大减；无 ffplay 则回落至缓冲播放
 - `phrases` — 覆写套语 `{ idle, error, permission }`
 
 ## 行为
 
-- 语音队列串行，先后有序，不相互叠。
-- 请求超时 120 秒；TTS 或播放失败皆默然。
-- 播放：Windows 用 PowerShell `SoundPlayer`，macOS 用 `afplay`，Linux 依次试 `paplay`、`aplay`。
+- **单首领**：插件可被多处加载（全局+项目），然仅一处发声（锁文件选举于 `%TEMP%\opencode-tts-announce.leader`），余者默然。
+- **流式**：请求体即流，chunk 一到即灌 ffplay（WinGet/PATH/`TTS_FFPLAY` 皆可寻之）；失败则收齐、归一化 WAV 头、缓冲播放。
+- 语音队列串行，先后有序；请求超时 120 秒；TTS 或播放失败皆默然（日志见 `%TEMP%\tts-announce.log`）。
+- 缓冲播放：Windows 用 PowerShell `SoundPlayer`，macOS 用 `afplay`，Linux 依次试 `paplay`、`aplay`。
 
 ## 测试与自检
 
