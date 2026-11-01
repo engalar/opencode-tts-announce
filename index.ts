@@ -1,5 +1,4 @@
 import { Plugin } from "@opencode/plugin"
-import { appendFileSync } from "node:fs"
 import { mkdtemp, rm, writeFile } from "node:fs/promises"
 import { spawn } from "node:child_process"
 import { tmpdir } from "node:os"
@@ -7,6 +6,7 @@ import { join } from "node:path"
 import { createSpeaker, phraseFor, type AudioSource, type Phrases } from "./announce"
 import { makeStreamPlayer, playAudio, type AudioSink } from "./player"
 import { acquireLeader } from "./leader"
+import { createFileLog } from "./filelog"
 
 export type Options = {
   /** Base URL of the faster-qwen3-tts OpenAI-compatible server. */
@@ -129,12 +129,7 @@ export default Plugin.define({
     const options = (ctx.options ?? {}) as Options
     const phrases: Phrases = { ...DEFAULTS.phrases, ...options.phrases }
 
-    const log = (line: string) => {
-      try {
-        appendFileSync(join(tmpdir(), "tts-announce.log"), `${new Date().toISOString()} ${line}\n`)
-      } catch {}
-      console.error(`[tts-announce] ${line}`)
-    }
+    const log = createFileLog(join(tmpdir(), "tts-announce.log"), 256 * 1024)
 
     // Exactly one loaded instance (across locations/processes) announces; the rest stay silent.
     const leader = acquireLeader(join(tmpdir(), "opencode-tts-announce.leader"))
