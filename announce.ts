@@ -4,9 +4,11 @@ export type Phrases = {
   permission: string
 }
 
+export type AudioSource = Uint8Array | ReadableStream<Uint8Array>
+
 export type SpeakerDeps = {
-  fetchSpeech: (text: string) => Promise<Uint8Array>
-  play: (wav: Uint8Array) => Promise<void>
+  fetchSpeech: (text: string) => Promise<AudioSource>
+  play: (audio: AudioSource) => Promise<void>
   /** Diagnostics sink; defaults to console.error. */
   log?: (line: string) => void
 }
@@ -52,9 +54,10 @@ export function createSpeaker(deps: SpeakerDeps) {
   const enqueue = (text: string): Promise<void> => {
     const run = async () => {
       try {
-        const wav = await deps.fetchSpeech(text)
-        log(`synthesized ${wav.byteLength} bytes for "${text}"`)
-        await deps.play(wav)
+        const audio = await deps.fetchSpeech(text)
+        const streamed = typeof (audio as { getReader?: unknown }).getReader === "function"
+        log(`audio ready (${streamed ? "stream" : `${(audio as Uint8Array).byteLength} bytes`}) for "${text}"`)
+        await deps.play(audio)
         log(`played "${text}"`)
       } catch (error) {
         // Silent for the user, visible in the diagnostics sink.

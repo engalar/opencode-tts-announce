@@ -1,5 +1,4 @@
-import { makeFetchSpeech, playWav } from "./index"
-import { normalizeWav } from "./announce"
+import { createAnnouncer } from "./index"
 
 export type CliOptions = {
   text: string
@@ -48,8 +47,8 @@ async function main() {
   }
   const started = Date.now()
   try {
-    const wav = await makeFetchSpeech(opts.baseUrl, opts.model, opts.voice)(opts.text)
-    await playWav(normalizeWav(wav))
+    const { speaker } = createAnnouncer(opts)
+    await speaker.say(opts.text)
     console.log(`announced "${opts.text}" in ${Date.now() - started} ms`)
   } catch (error) {
     console.error(`announce failed: ${error instanceof Error ? error.message : error}`)
