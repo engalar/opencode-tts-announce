@@ -8,6 +8,22 @@ describe("phraseFor", () => {
     expect(phraseFor("session.execution.succeeded", PHRASES)).toBe("任务完成")
   })
 
+  test("subagent success → sub-idle phrase", () => {
+    expect(phraseFor("session.execution.succeeded", { ...PHRASES, subIdle: "子任务完成" }, true)).toBe("子任务完成")
+  })
+
+  test("subagent success without sub phrase falls back to the main one", () => {
+    expect(phraseFor("session.execution.succeeded", PHRASES, true)).toBe("任务完成")
+  })
+
+  test("subagent failure → sub-error phrase", () => {
+    expect(phraseFor("session.execution.failed", { ...PHRASES, subError: "子任务出错了" }, true)).toBe("子任务出错了")
+  })
+
+  test("permission phrase is the same regardless of session kind", () => {
+    expect(phraseFor("permission.asked", PHRASES, true)).toBe("需要授权")
+  })
+
   test("session.idle → idle phrase", () => {
     expect(phraseFor("session.idle", PHRASES)).toBe("任务完成")
   })

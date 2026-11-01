@@ -26,7 +26,13 @@ const DEFAULTS = {
   model: "tts-1",
   voice: "alloy",
   streaming: true,
-  phrases: { idle: "任务完成", error: "出错了", permission: "需要授权" } as Phrases,
+  phrases: {
+    idle: "任务完成",
+    subIdle: "子任务完成",
+    error: "出错了",
+    subError: "子任务出错了",
+    permission: "需要授权",
+  } as Phrases,
 }
 
 /** Writes the WAV to a temp file and plays it, trying each buffered player in order. */
@@ -144,9 +150,15 @@ export default Plugin.define({
     void (async () => {
       try {
         for await (const event of ctx.event.subscribe({ signal: controller.signal })) {
-          const phrase = phraseFor(event.type, phrases)
+          const sessionID = (event as { data?: { sessionID?: string } }).data?.sessionID
+          let isSubagent = false
+          if (sessionID) {
+            const session = await ctx.session.get({ sessionID }).catch(() => undefined)
+            isSubagent = Boolean((session as { parentID?: string } | undefined)?.parentID)
+          }
+          const phrase = phraseFor(event.type, phrases, isSubagent)
           if (!phrase) continue
-          log(`announce on ${event.type}`)
+          log(`announce on ${event.type} (${isSubagent ? "subagent" : "main"})`)
           void speaker.say(phrase)
         }
       } catch (error) {

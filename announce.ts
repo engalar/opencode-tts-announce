@@ -2,6 +2,9 @@ export type Phrases = {
   idle: string
   error: string
   permission: string
+  /** Subagent (child session) variants; fall back to the main phrases. */
+  subIdle?: string
+  subError?: string
 }
 
 export type AudioSource = Uint8Array | ReadableStream<Uint8Array>
@@ -22,9 +25,12 @@ const EVENT_KEYS: Record<string, keyof Phrases> = {
   "permission.asked": "permission",
 }
 
-export function phraseFor(eventType: string, phrases: Phrases): string | undefined {
+export function phraseFor(eventType: string, phrases: Phrases, isSubagent = false): string | undefined {
   const key = EVENT_KEYS[eventType]
-  return key ? phrases[key] : undefined
+  if (!key) return undefined
+  if (isSubagent && key === "idle") return phrases.subIdle ?? phrases.idle
+  if (isSubagent && key === "error") return phrases.subError ?? phrases.error
+  return phrases[key]
 }
 
 /**
